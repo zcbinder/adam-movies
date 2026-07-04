@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adam's Movie Ratings vs. The World</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0d0d0d; color: #e5e5e5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+
+  /* Header */
+  header { background: linear-gradient(180deg, #000 0%, #0d0d0d 100%); padding: 24px 32px 0; border-bottom: 2px solid #e50914; }
+  .header-top { margin-bottom: 0; }
+  header h1 { font-size: 1.8rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  header h1 span { color: #e50914; }
+  header p { color: #999; font-size: 0.85rem; margin-bottom: 16px; }
+
+  /* Tabs */
+  .tabs { display: flex; border-bottom: none; padding: 0; background: transparent; }
+  .tab { padding: 12px 22px; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: #888; border-bottom: 3px solid transparent; transition: all 0.2s; letter-spacing: 0.5px; text-transform: uppercase; }
+  .tab:hover { color: #fff; }
+  .tab.active { color: #e50914; border-bottom-color: #e50914; }
+
+  /* Content */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ============================================================
+     COVER PAGE
+  ============================================================ */
+  .cover-hero {
+    background: linear-gradient(135deg, #0d0d0d 0%, #1a0a0a 50%, #0d0d0d 100%);
+    padding: 56px 32px 48px;
+    text-align: center;
+    border-bottom: 1px solid #2a2a2a;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover-hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(229,9,20,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-tagline { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 3px; color: #e50914; margin-bottom: 16px; font-weight: 600; }
+  .cover-title { font-size: 3rem; font-weight: 800; color: #fff; line-height: 1.1; margin-bottom: 12px; }
+  .cover-title span { color: #e50914; }
+  .cover-subtitle { font-size: 1.05rem; color: #888; max-width: 520px; margin: 0 auto 40px; line-height: 1.6; }
+
+  .cover-stats { display: flex; justify-content: center; gap: 40px; margin-bottom: 48px; flex-wrap: wrap; }
+  .cstat { text-align: center; }
+  .cstat-num { font-size: 2.2rem; font-weight: 800; color: #fff; }
+  .cstat-label { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .cover-cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary { background: #e50914; color: #fff; border: none; padding: 12px 28px; border-radius: 8px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .btn-primary:hover { background: #c4070f; }
+  .btn-secondary { background: transparent; color: #fff; border: 1px solid #444; padding: 12px 28px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { border-color: #888; }
+
+  .cover-section { padding: 40px 32px; max-width: 1100px; margin: 0 auto; }
+  .cover-section-title { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .cover-section-sub { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
+
+  .featured-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .featured-card {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+  }
+  .featured-card:hover { transform: translateY(-4px); border-color: #e50914; }
+  .featured-poster {
+    width: 100%; aspect-ratio: 2/3; background: #111;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .featured-poster img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .featured-poster .fp-placeholder {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: #444; text-align: center; padding: 12px;
+    background: linear-gradient(135deg, #111, #1a1a1a);
+  }
+  .featured-score-badge {
+    position: absolute; top: 10px; right: 10px;
+    background: rgba(0,0,0,0.85);
+    border-radius: 8px; padding: 5px 8px;
+    font-size: 1rem; font-weight: 800; line-height: 1;
+    backdrop-filter: blur(4px);
+  }
+  .featured-info { padding: 12px 14px; }
+  .featured-info h4 { font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 2px; line-height: 1.3; }
+  .featured-info p { font-size: 0.75rem; color: #666; }
+  .featured-label {
+    display: inline-block; margin-top: 6px;
+    font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;
+    padding: 2px 7px; border-radius: 4px; font-weight: 600;
+  }
+  .label-banger { background: #1a3a1a; color: #4caf50; }
+  .label-reject { background: #3a1a1a; color: #e50914; }
+  .label-chaos  { background: #2a1a00; color: #f5a623; }
+
+  .cover-divider { border: none; border-top: 1px solid #1e1e1e; margin: 0 32px; }
+
+  /* ============================================================
+     SEARCH TAB
+  ============================================================ */
+  .search-wrap { padding: 32px; max-width: 1100px; margin: 0 auto; }
+  .search-row { display: flex; gap: 12px; margin-bottom: 32px; }
+  .search-input { flex: 1; background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px 18px; border-radius: 8px; font-size: 1rem; }
+  .search-input:focus { outline: none; border-color: #e50914; }
+  .search-input::placeholder { color: #555; }
+  .btn { background: #e50914; color: #fff; border: none; padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.2s; white-space: nowrap; }
+  .btn:hover { background: #c4070f; }
+  .btn:disabled { background: #555; cursor: not-allowed; }
+
+  .search-hint { color: #555; font-size: 0.8rem; margin-top: -20px; margin-bottom: 28px; }
+  .search-hint span { color: #777; }
+
+  /* Movie Card */
+  .movie-card { background: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; overflow: hidden; display: flex; }
+  .movie-poster { width: 180px; min-width: 180px; background: #111; }
+  .movie-poster img { width: 100%; height: 270px; object-fit: cover; display: block; }
+  .movie-poster .no-poster { width: 180px; height: 270px; background: #1a1a1a; display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.8rem; text-align: center; padding: 16px; flex-direction: column; gap: 8px; }
+  .movie-poster .no-poster span { font-size: 2rem; }
+  .poster-loading { width: 180px; height: 270px; background: #111; display: flex; align-items: center; justify-content: center; }
+  .spinner { width: 24px; height: 24px; border: 2px solid #333; border-top-color: #e50914; border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .movie-info { padding: 24px 28px; flex: 1; }
+  .movie-title { font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+  .movie-meta { color: #777; font-size: 0.85rem; margin-bottom: 16px; }
+  .movie-plot { color: #bbb; font-size: 0.9rem; line-height: 1.6; margin-bottom: 20px; }
+  .scores-grid { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+  .score-box { background: #111; border-radius: 10px; padding: 12px 16px; text-align: center; min-width: 90px; }
+  .score-box .score-label { font-size: 0.7rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .score-box .score-value { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+  .score-box .score-sub { font-size: 0.7rem; color: #555; margin-top: 3px; }
+  .score-adam { color: #f5c518; }
+  .score-rt-critic { color: #fa320a; }
+  .score-rt-audience { color: #66cc00; }
+  .score-imdb { color: #f5c518; }
+  .score-na { color: #444 !important; font-size: 1.1rem !important; }
+
+  .adam-verdict { margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-style: italic; }
+  .verdict-love { background: #0f2010; border-left: 3px solid #4caf50; color: #8bc34a; }
+  .verdict-hate { background: #200f0f; border-left: 3px solid #e50914; color: #ff6b6b; }
+  .verdict-meh  { background: #0f0f20; border-left: 3px solid #5c7cfa; color: #a5b4fc; }
+  .verdict-none { background: #1a1a1a; border-left: 3px solid #444; color: #666; }
+
+  /* Loading / Error */
+  .loading { text-align: center; color: #777; padding: 40px; }
+  .error-box { background: #200f0f; border: 1px solid #e50914; border-radius: 8px; padding: 16px 20px; color: #ff6b6b; font-size: 0.9rem; }
+  .info-box { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 16px 20px; color: #888; font-size: 0.9rem; }
+
+  /* ============================================================
+     HOT TAKES
+  ============================================================ */
+  .roast-wrap { padding: 32px; max-width: 1100px; margin: 0 auto; }
+  .roast-intro { color: #888; font-size: 0.9rem; margin-bottom: 24px; line-height: 1.6; }
+  .roast-intro strong { color: #e50914; }
+  .roast-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(460px, 1fr)); gap: 20px; }
+  .roast-card { background: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; padding: 20px 22px; }
+  .roast-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px; }
+  .roast-title { font-size: 1rem; font-weight: 700; color: #fff; }
+  .roast-year { font-size: 0.8rem; color: #777; margin-top: 2px; }
+  .roast-scores { display: flex; gap: 8px; flex-shrink: 0; }
+  .mini-score { text-align: center; background: #111; border-radius: 8px; padding: 8px 10px; min-width: 54px; }
+  .mini-score .ms-label { font-size: 0.62rem; color: #666; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 3px; }
+  .mini-score .ms-val { font-size: 1.05rem; font-weight: 700; }
+  .divergence-bar { height: 3px; background: #1e1e1e; border-radius: 2px; margin-bottom: 14px; overflow: hidden; }
+  .divergence-fill { height: 100%; border-radius: 2px; }
+  .roast-joke { color: #bbb; font-size: 0.875rem; line-height: 1.65; font-style: italic; border-left: 3px solid #e50914; padding-left: 14px; }
+
+  /* ============================================================
+     STATS
+  ============================================================ */
+  .stats-wrap { padding: 32px; max-width: 1100px; margin: 0 auto; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-bottom: 36px; }
+  .stat-card { background: #1a1a1a; border-radius: 12px; border: 1px solid #2a2a2a; padding: 20px 22px; }
+  .stat-card h3 { font-size: 0.75rem; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
+  .stat-big { font-size: 2.2rem; font-weight: 800; color: #e50914; }
+  .stat-label { font-size: 0.85rem; color: #777; margin-top: 4px; }
+  .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .dist-star { font-size: 0.85rem; color: #f5c518; width: 60px; flex-shrink: 0; }
+  .dist-bar-bg { flex: 1; height: 7px; background: #1e1e1e; border-radius: 4px; overflow: hidden; }
+  .dist-bar-fill { height: 100%; border-radius: 4px; background: #e50914; }
+  .dist-count { font-size: 0.78rem; color: #666; width: 42px; text-align: right; }
+  .hall-list { list-style: none; }
+  .hall-list li { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #1e1e1e; font-size: 0.85rem; color: #ccc; }
+  .hall-list li:last-child { border-bottom: none; }
+  .hall-list li .hl-score { font-weight: 700; flex-shrink: 0; margin-left: 12px; }
+  .section-title { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 16px; }
+
+  @media (max-width: 700px) {
+    header { padding: 16px 16px 0; }
+    .cover-hero { padding: 36px 16px 32px; }
+    .cover-title { font-size: 2rem; }
+    .cover-stats { gap: 24px; }
+    .cover-section, .search-wrap, .roast-wrap, .stats-wrap { padding: 20px 16px; }
+    .movie-card { flex-direction: column; }
+    .movie-poster { width: 100%; }
+    .movie-poster img, .poster-loading { width: 100%; height: 220px; }
+    .movie-poster .no-poster { width: 100%; }
+    .roast-grid { grid-template-columns: 1fr; }
+    .featured-grid { grid-template-columns: repeat(2, 1fr); }
+    .hof-grid { grid-template-columns: 1fr; }
+  }
+
+  /* Hall of Fame */
+  .hof-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  .hof-desc { color: #888; margin: -10px 0 28px; font-size: 0.9rem; }
+  .hof-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+  .hof-card { background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; transition: border-color 0.2s; }
+  .hof-card:hover { border-color: #444; }
+  .hof-shame-section .hof-card { border-color: #1e1e1e; opacity: 0.85; }
+  .hof-shame-section .hof-card:hover { border-color: #333; opacity: 1; }
+  .hof-actor-name { font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .hof-avg-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .hof-stars { font-size: 1.1rem; letter-spacing: 1px; }
+  .hof-avg-num { color: #888; font-size: 0.8rem; }
+  .hof-film-count { color: #555; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+  .hof-films { display: flex; flex-direction: column; gap: 7px; border-top: 1px solid #2a2a2a; padding-top: 14px; }
+  .hof-film { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; }
+  .hof-film-title { color: #bbb; }
+  .hof-film-year { color: #555; margin-left: 4px; }
+  .hof-film-stars { font-size: 0.8rem; letter-spacing: 0; }
+  .hof-divider { border: none; border-top: 1px solid #222; margin: 10px 0 40px; }
+  .hof-avatar-wrap { width: 72px; height: 72px; border-radius: 50%; overflow: hidden; margin: 0 auto 16px; border: 2px solid #333; position: relative; flex-shrink: 0; }
+  .hof-avatar-wrap.fame { border-color: #f5c518; }
+  .hof-avatar-wrap.shame { border-color: #444; }
+  .hof-avatar { width: 100%; height: 100%; object-fit: cover; object-position: top; display: none; }
+  .hof-avatar-init { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 700; color: #666; background: #1e1e1e; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <h1>Adam's Movie Ratings <span>vs.</span> The World</h1>
+    <p>1,566 Netflix DVD rentals · 3,440 ratings · One man's cinematic truth</p>
+  </div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('cover')">Home</div>
+    <div class="tab" onclick="switchTab('search')">Search</div>
+    <div class="tab" onclick="switchTab('roast')">Hot Takes</div>
+    <div class="tab" onclick="switchTab('stats')">Stats</div>
+    <div class="tab" onclick="switchTab('hof')">Hall of Fame</div>
+  </div>
+</header>
+
+<!-- ============================================================
+     COVER TAB
+============================================================ -->
+<div id="tab-cover" class="tab-content active">
+  <div class="cover-hero">
+    <div class="cover-tagline">Netflix DVD · 2004 – 2023</div>
+    <h2 class="cover-title">One Man Watched <span>1,566</span> Movies.<br>His Opinions Are Final.</h2>
+    <p class="cover-subtitle">Adam rented and rated everything from Oscar winners to direct-to-DVD volcano thrillers. The results are illuminating, baffling, and occasionally inspiring.</p>
+    <div class="cover-stats">
+      <div class="cstat"><div class="cstat-num">1,566</div><div class="cstat-label">Films Rented</div></div>
+      <div class="cstat"><div class="cstat-num">3,440</div><div class="cstat-label">Ratings Given</div></div>
+      <div class="cstat"><div class="cstat-num">50</div><div class="cstat-label">Zero Stars</div></div>
+      <div class="cstat"><div class="cstat-num">1,267</div><div class="cstat-label">Five Stars</div></div>
+    </div>
+    <div class="cover-cta">
+      <button class="btn-primary" onclick="switchTab('search')">Search a Movie</button>
+      <button class="btn-secondary" onclick="switchTab('roast')">See Hot Takes</button>
+      <button class="btn-secondary" onclick="randomAdamFilm()">Surprise Me</button>
+    </div>
+  </div>
+
+  <div class="cover-section">
+    <div class="cover-section-title">Start Here</div>
+    <div class="cover-section-sub">Adam's most notorious ratings. Click any film to explore.</div>
+    <div class="featured-grid" id="featuredGrid"></div>
+  </div>
+
+  <hr class="cover-divider">
+
+  <div class="cover-section" style="padding-top: 28px; padding-bottom: 36px;">
+    <div class="cover-section-title">The Case Study</div>
+    <div class="cover-section-sub" style="margin-bottom: 0; max-width: 600px; line-height: 1.8; color: #777; font-size: 0.9rem;">
+      Adam gave <strong style="color:#ccc">Ocean's Eleven</strong> zero stars. He gave <strong style="color:#ccc">Ocean's Twelve</strong> five stars and <strong style="color:#ccc">Ocean's Thirteen</strong> five stars. He watched all three. He is not confused. He simply has standards, and those standards involve sequels being objectively better than their originals regardless of critical consensus, box office performance, or basic narrative coherence. He once threw pool cleaning chemicals over a fence at his own bachelor party. He placed a glass beer bottle gently into a pool to watch it sink. His decision-making framework is internally consistent. It just doesn't map to anything external.<br><br>
+      He also gave <strong style="color:#ccc">Dante's Peak</strong> (1997) five stars. Dante's Peak has a 33% on Rotten Tomatoes. It is a movie about a volcano. Adam has Premier Platinum status with United Airlines. He has seen the world. He has processed this and concluded that Dante's Peak is excellent cinema.
+    </div>
+  </div>
+
+  <hr class="cover-divider">
+
+  <div class="cover-section" style="padding-top: 28px; padding-bottom: 40px;">
+    <div class="cover-section-title">About Adam</div>
+    <div class="cover-section-sub">The man behind the ratings. Turning 40. Being roasted accordingly.</div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; max-width: 960px;">
+
+      <div class="stat-card">
+        <h3>Origin</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Adam is from Racine, WI. He will say Burlington, WI...but those are the same.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>Academic Career</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Dropped out of UW–Stout. Then attended Marquette University for years — not as a student, but as a party host, charging enrolled students for cups. Attended more Marquette basketball games than most actual students. Left without a degree. Left with connections.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>Professional Life</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Works in the spring manufacturing industry. Featured writer in <em>SPRINGS Magazine</em>. Maintains an active LinkedIn presence — whether sincere or performance art remains unclear. Holds United MileagePlus Premier Platinum status. Loves a United lounge.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>Cruise Ship Highlight</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Was once crowned Sexiest Man on a cruise ship. Did not earn this through conventional means. Performed a suggestive chair dance/strip tease to Shania Twain's <em>Man I Feel Like a Woman</em>. Won. No notes.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>The TGI Fridays Incident</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Arrived in linen pants. No underwear. Sat in a booth. Pants split completely open. Walked through the entire restaurant on the way out. The waitress was appalled. He went to a friend's apartment afterward and played video games. The rip widened. The evening continued.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>Catchphrases</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          <em>"15 minutes could save you 15% or more on car insurance."</em><br>
+          <em>"Grab a whore, find a door."</em><br>
+          <em>"Jesus Christ, it's Jason Bourne."</em><br><br>
+          Latches onto unfunny pop-culture phrases and runs them until they collapse. Has been doing a Borat impression for years with no signs of stopping.
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <h3>Musical Taste</h3>
+        <div style="color:#ccc; font-size:0.9rem; line-height:1.7;">
+          Pitbull. Kesha. Hall &amp; Oats. <em>Gangnam Style</em>. <em>Like a G6</em> (previously drove a black Pontiac G6 — took this personally). <em>Selfie</em>. <em>Friday</em>. <em>Sandstorm</em>. <em>Timber</em>. Favors music that other people find unbearable but cannot stop humming. His film taste and his music taste are the same taste.
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SEARCH TAB
+============================================================ -->
+<div id="tab-search" class="tab-content">
+  <div class="search-wrap">
+    <div class="search-row">
+      <input type="text" class="search-input" id="searchInput" placeholder="Search any movie title..." onkeydown="if(event.key==='Enter')searchMovie()" />
+      <button class="btn" onclick="searchMovie()" id="searchBtn">Search</button>
+    </div>
+    <p class="search-hint">Full metadata available for Adam's key films. All ~400 rated titles return Adam's score. <span>Posters load from Wikipedia.</span></p>
+    <div id="searchResult"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     HOT TAKES TAB
+============================================================ -->
+<div id="tab-roast" class="tab-content">
+  <div class="roast-wrap">
+    <p class="roast-intro">
+      Adam has watched <strong>1,566 movies</strong> and rated <strong>3,440</strong> of them. The following is a forensic examination of his most inexplicable judgments.<br>
+      RT Tomatometer = critics. Audience = RT audience score. These are hardcoded from published RT data.
+    </p>
+    <div class="roast-grid" id="roastGrid"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     STATS TAB
+============================================================ -->
+<div id="tab-stats" class="tab-content">
+  <div class="stats-wrap">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total Rentals</h3>
+        <div class="stat-big">1,566</div>
+        <div class="stat-label">Netflix DVD titles rented</div>
+      </div>
+      <div class="stat-card">
+        <h3>Total Ratings Given</h3>
+        <div class="stat-big">3,440</div>
+        <div class="stat-label">Including rewatches &amp; alternates</div>
+      </div>
+      <div class="stat-card">
+        <h3>Films Given 0 Stars</h3>
+        <div class="stat-big">50</div>
+        <div class="stat-label">Including all 6 Star Wars films</div>
+      </div>
+      <div class="stat-card">
+        <h3>Films Given 5 Stars</h3>
+        <div class="stat-big">1,267</div>
+        <div class="stat-label">Adam distributes 5s generously</div>
+      </div>
+    </div>
+
+    <div class="section-title">Rating Distribution</div>
+    <div class="stat-card" style="max-width: 480px; margin-bottom: 36px;">
+      <div class="dist-row"><div class="dist-star">★★★★★</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:100%"></div></div><div class="dist-count">1,267</div></div>
+      <div class="dist-row"><div class="dist-star">★★★★</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:87%"></div></div><div class="dist-count">1,106</div></div>
+      <div class="dist-row"><div class="dist-star">★★★</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:54%"></div></div><div class="dist-count">682</div></div>
+      <div class="dist-row"><div class="dist-star">★★</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:16%"></div></div><div class="dist-count">208</div></div>
+      <div class="dist-row"><div class="dist-star">★</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:10%"></div></div><div class="dist-count">127</div></div>
+      <div class="dist-row"><div class="dist-star">☆ (0)</div><div class="dist-bar-bg"><div class="dist-bar-fill" style="width:4%"></div></div><div class="dist-count">50</div></div>
+    </div>
+
+    <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px;">
+      <div>
+        <div class="section-title">Hall of Shame — 0 Stars</div>
+        <div class="stat-card">
+          <ul class="hall-list">
+            <li><span>Star Wars: A New Hope</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>The Empire Strikes Back</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Return of the Jedi</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>The Phantom Menace</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Attack of the Clones</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Revenge of the Sith</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>LOTR: Fellowship of the Ring</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Ocean's Eleven</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Avatar</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>The Royal Tenenbaums</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Walk the Line</span><span class="hl-score" style="color:#e50914">0★</span></li>
+            <li><span>Pumping Iron</span><span class="hl-score" style="color:#e50914">0★</span></li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="section-title">Certified Bangers — Unexpected 5★</div>
+        <div class="stat-card">
+          <ul class="hall-list">
+            <li><span>Crank (2006) — RT: 64%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Dante's Peak (1997) — RT: 33%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Ocean's Twelve — RT: 54%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Ocean's Thirteen — RT: 69%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Independence Day — RT: 67%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Armageddon — RT: 38%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Geostorm — RT: 13%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Parasite — RT: 99%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Top Gun: Maverick — RT: 96%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Taken — RT: 57%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>Man on Fire — RT: 39%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+            <li><span>The Equalizer — RT: 62%</span><span class="hl-score" style="color:#f5c518">5★</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     HALL OF FAME TAB
+============================================================ -->
+<div id="tab-hof" class="tab-content">
+  <div class="hof-wrap">
+    <div class="section-title" style="color:#f5c518;">Hall of Fame</div>
+    <p class="hof-desc">Actors Adam has consistently rewarded with his highest ratings. Based on films in this database only.</p>
+    <div class="hof-grid" id="hof-fame-grid"></div>
+
+    <div class="hof-divider"></div>
+
+    <div class="section-title" style="color:#555; margin-top: 10px;">Hall of Shame</div>
+    <p class="hof-desc">Actors Adam has consistently subjected to his lowest ratings. They tried. It wasn't enough.</p>
+    <div class="hof-grid hof-shame-section" id="hof-shame-grid"></div>
+  </div>
+</div>
+<script>
+// ============================================================
+// ADAM'S FULL RATINGS DATASET
+// ============================================================
+const ADAM_RATINGS = {
+  // 0 STARS
+  "avatar": 0,
+  "oceans eleven": 0, "ocean's eleven": 0,
+  "star wars a new hope": 0, "star wars episode iv a new hope": 0,
+  "new hope": 0,
+  "empire strikes back": 0, "star wars empire strikes back": 0,
+  "star wars episode v empire strikes back": 0,
+  "return of jedi": 0, "star wars return of jedi": 0,
+  "star wars episode vi return of jedi": 0,
+  "phantom menace": 0, "star wars phantom menace": 0,
+  "star wars episode i phantom menace": 0,
+  "attack of clones": 0, "star wars attack of clones": 0,
+  "star wars episode ii attack of clones": 0,
+  "revenge of sith": 0, "star wars revenge of sith": 0,
+  "star wars episode iii revenge of sith": 0,
+  "lord of rings fellowship of ring": 0, "fellowship of ring": 0,
+  "lord of rings": 0,
+  "royal tenenbaums": 0,
+  "true grit": 0,
+  "walk line": 0, "walk the line": 0,
+  "milk": 0,
+  "twilight": 0,
+  "pumping iron": 0,
+  "hijacking": 0,
+  "kids": 0,
+
+  // 1 STAR
+  "requiem for dream": 1, "requiem for a dream": 1,
+  "babel": 1,
+  "cloud atlas": 1,
+  "french dispatch": 1,
+  "under skin": 1, "under the skin": 1,
+  "vivarium": 1,
+  "speed racer": 1,
+  "how to train your dragon": 1,
+  "wicker man": 1,
+  "mandy": 1,
+  "star trek ii wrath of khan": 1, "wrath of khan": 1,
+  "watchmen": 1,
+  "serenity": 1,
+  "dogtooth": 1,
+  "showgirls": 1,
+  "lady in water": 1, "lady in the water": 1,
+  "lodge": 1, "the lodge": 1,
+  "songbird": 1,
+  "antichrist": 1,
+  "irreversible": 1,
+  "pink flamingos": 1,
+  "tusk": 1,
+  "rubber": 1,
+
+  // 2 STARS
+  "annihilation": 2,
+  "brooklyn": 2,
+  "blue jasmine": 2,
+  "anthropoid": 2,
+  "moonlight": 2,
+  "shape of water": 2,
+  "gravity": 2,
+  "her": 2,
+  "tree of life": 2,
+  "melancholia": 2,
+  "sound of metal": 2,
+  "minari": 2,
+  "power of dog": 2, "the power of the dog": 2,
+
+  // 3 STARS
+  "500 days of summer": 3,
+  "black panther": 3,
+  "blade runner 2049": 3,
+  "dunkirk": 3,
+  "favourite": 3, "the favourite": 3,
+  "hurt locker": 3, "the hurt locker": 3,
+  "irishman": 3, "the irishman": 3,
+  "tenet": 3,
+  "lady bird": 3,
+  "reservoir dogs": 3,
+  "snowpiercer": 3,
+  "lost in translation": 3,
+  "us": 3,
+  "prometheus": 3,
+  "get out": 3,
+  "hereditary": 3,
+  "midsommar": 3,
+  "lighthouse": 3, "the lighthouse": 3,
+  "joker": 3,
+  "uncut gems": 3,
+  "marriage story": 3,
+  "once upon time in hollywood": 3, "once upon a time in hollywood": 3,
+  "1917": 3,
+  "ford v ferrari": 3,
+  "jojo rabbit": 3,
+  "knives out": 5,
+  "trial of chicago 7": 3,
+  "promising young woman": 3,
+  "nomadland": 3,
+  "tick tick boom": 3,
+
+  // 4 STARS
+  "clockwork orange": 4, "a clockwork orange": 4,
+  "22 jump street": 4,
+  "beetlejuice": 4,
+  "batman": 4,
+  "batman returns": 4,
+  "captain america first avenger": 4,
+  "captain america winter soldier": 4,
+  "avengers": 4, "the avengers": 4,
+  "iron man": 4,
+  "guardians of galaxy": 4, "guardians of the galaxy": 4,
+  "spider-man homecoming": 4, "spider man homecoming": 4, "spiderman homecoming": 4,
+  "scarface": 4,
+  "godfather": 4, "the godfather": 4,
+  "godfather part ii": 4, "godfather ii": 4,
+  "apocalypse now": 4,
+  "full metal jacket": 4,
+  "platoon": 4,
+  "american history x": 4,
+  "seven": 4, "se7en": 4,
+  "usual suspects": 4, "the usual suspects": 4,
+  "american beauty": 4,
+  "american psycho": 4,
+  "shining": 4, "the shining": 4,
+  "matrix": 4, "the matrix": 4,
+  "alien": 4,
+  "aliens": 4,
+  "predator": 4,
+  "terminator": 4, "the terminator": 4,
+  "terminator 2": 4, "terminator 2 judgment day": 4,
+  "die hard": 4,
+  "lethal weapon": 4,
+  "rambo": 4,
+  "first blood": 4,
+  "rocky": 4,
+  "raging bull": 4,
+  "taxi driver": 4,
+  "leon professional": 4, "the professional": 4, "leon": 4,
+  "fifth element": 4, "the fifth element": 4,
+  "snatch": 4,
+  "lock stock and two smoking barrels": 4,
+  "kingsman secret service": 4, "kingsman": 4,
+  "kick-ass": 4, "kick ass": 4,
+  "john wick chapter 2": 4,
+  "john wick chapter 3": 4, "john wick parabellum": 4,
+  "atomic blonde": 4,
+  "fast five": 4,
+  "mission impossible": 4,
+  "mission impossible fallout": 4,
+  "edge of tomorrow": 4,
+  "minority report": 4,
+  "collateral": 4,
+  "captain phillips": 4,
+  "american sniper": 4,
+  "hacksaw ridge": 4,
+  "tropic thunder": 4,
+  "pineapple express": 4,
+  "superbad": 4,
+  "knocked up": 4,
+  "40 year old virgin": 4,
+  "anchorman": 4,
+  "step brothers": 4,
+  "hangover": 4, "the hangover": 4,
+  "hot fuzz": 4,
+  "shaun of dead": 4, "shaun of the dead": 4,
+  "21 jump street": 4,
+  "black hawk down": 4,
+  "fury": 4,
+  "lone survivor": 4,
+  "social network": 4, "the social network": 4,
+  "moneyball": 4,
+  "big short": 4, "the big short": 4,
+  "catch me if you can": 4,
+
+  // 5 STARS
+  "dark knight": 5, "the dark knight": 5,
+  "goodfellas": 5,
+  "pulp fiction": 5,
+  "forrest gump": 5,
+  "silence of lambs": 5, "the silence of the lambs": 5,
+  "shawshank redemption": 5, "the shawshank redemption": 5,
+  "inception": 5,
+  "no country for old men": 5,
+  "departed": 5, "the departed": 5,
+  "saving private ryan": 5,
+  "parasite": 5,
+  "jaws": 5,
+  "heat": 5,
+  "casino": 5,
+  "gladiator": 5,
+  "braveheart": 5,
+  "jurassic park": 5,
+  "top gun maverick": 5, "top gun: maverick": 5,
+  "john wick": 5,
+  "sicario": 5,
+  "django unchained": 5,
+  "knives out": 5,
+  "taken": 5,
+  "man on fire": 5,
+  "gone girl": 5,
+  "prisoners": 5,
+  "nightcrawler": 5,
+  "training day": 5,
+  "memento": 5,
+  "fight club": 5,
+  "zero dark thirty": 5,
+  "wolf of wall street": 5, "the wolf of wall street": 5,
+  "oceans twelve": 5, "ocean's twelve": 5, "oceans 12": 5,
+  "oceans thirteen": 5, "ocean's thirteen": 5, "oceans 13": 5,
+  "dantes peak": 5, "dante's peak": 5,
+  "crank": 5,
+  "dark knight rises": 5, "the dark knight rises": 5,
+  "batman begins": 5,
+  "man of steel": 5,
+  "avengers infinity war": 5,
+  "avengers endgame": 5,
+  "captain america civil war": 5,
+  "spider-man no way home": 5, "spiderman no way home": 5,
+  "shutter island": 5,
+  "prestige": 5, "the prestige": 5,
+  "interstellar": 5,
+  "300": 5,
+  "gladiator ii": 5,
+  "troy": 5,
+  "apocalypto": 5,
+  "tears of sun": 5, "tears of the sun": 5,
+  "we were soldiers": 5,
+  "hurt locker": 5,
+  "argo": 5,
+  "wolf of wall street": 5,
+  "margin call": 5,
+  "boiler room": 5,
+  "wall street": 5,
+  "pursuit of happyness": 5, "pursuit of happiness": 5,
+  "blow": 5,
+  "equalizer": 5, "the equalizer": 5,
+  "equalizer 2": 5,
+  "shooter": 5,
+  "non-stop": 5, "non stop": 5,
+  "grey": 5, "the grey": 5,
+  "walk among tombstones": 5, "a walk among tombstones": 5,
+  "taken 2": 5,
+  "commuter": 5, "the commuter": 5,
+  "safe house": 5,
+  "expendables": 5, "the expendables": 5,
+  "expendables 2": 5,
+  "transporter": 5, "the transporter": 5,
+  "transporter 2": 5,
+  "point break": 5,
+  "speed": 5,
+  "twister": 5,
+  "volcano": 5,
+  "deep impact": 5,
+  "day after tomorrow": 5, "the day after tomorrow": 5,
+  "armageddon": 5,
+  "independence day": 5,
+  "san andreas": 5,
+  "geostorm": 5,
+  "pacific rim": 5,
+  "kong skull island": 5,
+  "godzilla": 5,
+  "collateral": 5,
+  "ali": 5,
+  "insider": 5, "the insider": 5,
+  "public enemies": 5,
+  "blow": 5,
+  "carlito's way": 5,
+  "donnie brasco": 5,
+  "american gangster": 5,
+  "end of watch": 5,
+  "night crawler": 5,
+};
+
+// ============================================================
+// RICH MOVIE METADATA (no API needed)
+// ============================================================
+const MOVIE_DATA = [
+  // 5-star picks
+  { title: "The Dark Knight", year: "2008", genre: "Action, Crime", director: "Christopher Nolan", actors: "Christian Bale, Heath Ledger, Aaron Eckhart", plot: "When the Joker wreaks havoc on Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.", rtCritic: 94, rtAudience: 94, imdbScore: "9.0", wikiTitle: "The Dark Knight (film)" },
+  { title: "Goodfellas", year: "1990", genre: "Crime, Drama", director: "Martin Scorsese", actors: "Ray Liotta, Robert De Niro, Joe Pesci", plot: "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito.", rtCritic: 96, rtAudience: 94, imdbScore: "8.7", wikiTitle: "Goodfellas" },
+  { title: "Pulp Fiction", year: "1994", genre: "Crime, Drama", director: "Quentin Tarantino", actors: "John Travolta, Uma Thurman, Samuel L. Jackson", plot: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.", rtCritic: 92, rtAudience: 95, imdbScore: "8.9", wikiTitle: "Pulp Fiction" },
+  { title: "The Shawshank Redemption", year: "1994", genre: "Drama", director: "Frank Darabont", actors: "Tim Robbins, Morgan Freeman, Bob Gunton", plot: "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.", rtCritic: 89, rtAudience: 98, imdbScore: "9.3", wikiTitle: "The Shawshank Redemption" },
+  { title: "Forrest Gump", year: "1994", genre: "Drama, Romance", director: "Robert Zemeckis", actors: "Tom Hanks, Robin Wright, Gary Sinise", plot: "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an extraordinary life.", rtCritic: 71, rtAudience: 95, imdbScore: "8.8", wikiTitle: "Forrest Gump" },
+  { title: "The Silence of the Lambs", year: "1991", genre: "Crime, Horror, Thriller", director: "Jonathan Demme", actors: "Jodie Foster, Anthony Hopkins, Lawrence A. Bonney", plot: "A young FBI cadet must receive the help of an incarcerated and manipulative cannibal killer to help catch another serial killer.", rtCritic: 96, rtAudience: 96, imdbScore: "8.6", wikiTitle: "The Silence of the Lambs (film)" },
+  { title: "Inception", year: "2010", genre: "Action, Adventure, Sci-Fi", director: "Christopher Nolan", actors: "Leonardo DiCaprio, Joseph Gordon-Levitt, Elliot Page", plot: "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.", rtCritic: 87, rtAudience: 91, imdbScore: "8.8", wikiTitle: "Inception" },
+  { title: "No Country for Old Men", year: "2007", genre: "Crime, Drama, Thriller", director: "Joel Coen, Ethan Coen", actors: "Tommy Lee Jones, Javier Bardem, Josh Brolin", plot: "Violence and mayhem ensue after a hunter stumbles upon a drug deal gone wrong and more than two million dollars in cash near the Rio Grande.", rtCritic: 93, rtAudience: 87, imdbScore: "8.2", wikiTitle: "No Country for Old Men" },
+  { title: "The Departed", year: "2006", genre: "Crime, Drama, Thriller", director: "Martin Scorsese", actors: "Leonardo DiCaprio, Matt Damon, Jack Nicholson", plot: "An undercover cop and a mole in the police attempt to identify each other while infiltrating an Irish gang in South Boston.", rtCritic: 91, rtAudience: 95, imdbScore: "8.5", wikiTitle: "The Departed" },
+  { title: "Saving Private Ryan", year: "1998", genre: "Drama, War", director: "Steven Spielberg", actors: "Tom Hanks, Matt Damon, Tom Sizemore", plot: "Following the Normandy Landings, a group of U.S. soldiers go behind enemy lines to retrieve a paratrooper whose brothers have been killed in action.", rtCritic: 93, rtAudience: 95, imdbScore: "8.6", wikiTitle: "Saving Private Ryan" },
+  { title: "Parasite", year: "2019", genre: "Comedy, Drama, Thriller", director: "Bong Joon-ho", actors: "Song Kang-ho, Lee Sun-kyun, Cho Yeo-jeong", plot: "Greed and class discrimination threaten the newly formed symbiotic relationship between the wealthy Park family and the destitute Kim clan.", rtCritic: 99, rtAudience: 90, imdbScore: "8.5", wikiTitle: "Parasite (2019 film)" },
+  { title: "John Wick", year: "2014", genre: "Action, Crime, Thriller", director: "Chad Stahelski", actors: "Keanu Reeves, Michael Nyqvist, Alfie Allen", plot: "An ex-hit-man comes out of retirement to track down the gangsters that killed his dog and took his car.", rtCritic: 86, rtAudience: 90, imdbScore: "7.4", wikiTitle: "John Wick" },
+  { title: "Sicario", year: "2015", genre: "Action, Crime, Drama", director: "Denis Villeneuve", actors: "Emily Blunt, Benicio Del Toro, Josh Brolin", plot: "An idealistic FBI agent is enlisted by a task force to aid in the drug war on the U.S.-Mexico border.", rtCritic: 93, rtAudience: 85, imdbScore: "7.6", wikiTitle: "Sicario (film)" },
+  { title: "Django Unchained", year: "2012", genre: "Drama, Western", director: "Quentin Tarantino", actors: "Jamie Foxx, Christoph Waltz, Leonardo DiCaprio", plot: "With the help of a German bounty hunter, a freed slave sets out to rescue his wife from a brutal Mississippi plantation owner.", rtCritic: 87, rtAudience: 93, imdbScore: "8.4", wikiTitle: "Django Unchained" },
+  { title: "Gone Girl", year: "2014", genre: "Drama, Mystery, Thriller", director: "David Fincher", actors: "Ben Affleck, Rosamund Pike, Neil Patrick Harris", plot: "With his wife's disappearance having become the focus of an intense media circus, a man sees the spotlight turned on him when it's suspected that he may not be innocent.", rtCritic: 87, rtAudience: 87, imdbScore: "8.1", wikiTitle: "Gone Girl (film)" },
+  { title: "Prisoners", year: "2013", genre: "Crime, Drama, Mystery", director: "Denis Villeneuve", actors: "Hugh Jackman, Jake Gyllenhaal, Viola Davis", plot: "When Keller Dover's daughter and her friend go missing, he takes matters into his own hands as the police detective works to find the girls.", rtCritic: 81, rtAudience: 91, imdbScore: "8.1", wikiTitle: "Prisoners (film)" },
+  { title: "Nightcrawler", year: "2014", genre: "Crime, Drama, Thriller", director: "Dan Gilroy", actors: "Jake Gyllenhaal, Rene Russo, Bill Paxton", plot: "When Louis Bloom, a con man desperate for work, muscles into the world of L.A. crime journalism, he blurs the line between observer and participant.", rtCritic: 95, rtAudience: 93, imdbScore: "7.9", wikiTitle: "Nightcrawler (film)" },
+  { title: "Memento", year: "2000", genre: "Mystery, Thriller", director: "Christopher Nolan", actors: "Guy Pearce, Carrie-Anne Moss, Joe Pantoliano", plot: "A man with short-term memory loss attempts to track down his wife's murderer.", rtCritic: 93, rtAudience: 94, imdbScore: "8.4", wikiTitle: "Memento (film)" },
+  { title: "Fight Club", year: "1999", genre: "Drama", director: "David Fincher", actors: "Brad Pitt, Edward Norton, Helena Bonham Carter", plot: "An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into much more.", rtCritic: 79, rtAudience: 97, imdbScore: "8.8", wikiTitle: "Fight Club" },
+  { title: "The Wolf of Wall Street", year: "2013", genre: "Biography, Comedy, Crime", director: "Martin Scorsese", actors: "Leonardo DiCaprio, Jonah Hill, Margot Robbie", plot: "Based on the true story of Jordan Belfort, from his rise to a wealthy stock-broker living the high life to his fall involving crime, corruption and the federal government.", rtCritic: 79, rtAudience: 84, imdbScore: "8.2", wikiTitle: "The Wolf of Wall Street (2013 film)" },
+  { title: "Top Gun: Maverick", year: "2022", genre: "Action, Drama", director: "Joseph Kosinski", actors: "Tom Cruise, Jennifer Connelly, Miles Teller", plot: "After more than thirty years of service as one of the Navy's top aviators, Pete Mitchell is where he belongs, pushing the envelope as a courageous test pilot.", rtCritic: 96, rtAudience: 99, imdbScore: "8.2", wikiTitle: "Top Gun: Maverick" },
+  { title: "Knives Out", year: "2019", genre: "Comedy, Crime, Drama", director: "Rian Johnson", actors: "Daniel Craig, Chris Evans, Ana de Armas", plot: "A detective investigates the death of a patriarch of an eccentric, combative family.", rtCritic: 97, rtAudience: 92, imdbScore: "7.9", wikiTitle: "Knives Out" },
+  { title: "Training Day", year: "2001", genre: "Crime, Drama, Thriller", director: "Antoine Fuqua", actors: "Denzel Washington, Ethan Hawke, Scott Glenn", plot: "A rookie cop spends his first day as a Los Angeles narcotics officer with a rogue detective who isn't what he seems.", rtCritic: 73, rtAudience: 88, imdbScore: "7.7", wikiTitle: "Training Day" },
+  { title: "Heat", year: "1995", genre: "Action, Crime, Drama", director: "Michael Mann", actors: "Al Pacino, Robert De Niro, Val Kilmer", plot: "A group of professional bank robbers start to feel the heat from police when they unknowingly leave a clue at their latest heist.", rtCritic: 86, rtAudience: 94, imdbScore: "8.3", wikiTitle: "Heat (1995 film)" },
+  { title: "Gladiator", year: "2000", genre: "Action, Adventure, Drama", director: "Ridley Scott", actors: "Russell Crowe, Joaquin Phoenix, Connie Nielsen", plot: "A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.", rtCritic: 77, rtAudience: 90, imdbScore: "8.5", wikiTitle: "Gladiator (2000 film)" },
+  { title: "Jaws", year: "1975", genre: "Adventure, Horror, Thriller", director: "Steven Spielberg", actors: "Roy Scheider, Robert Shaw, Richard Dreyfuss", plot: "When a killer shark unleashes chaos on a beach community off Cape Cod, it's up to a local sheriff, a marine biologist, and an old seafarer to hunt the beast down.", rtCritic: 98, rtAudience: 92, imdbScore: "8.1", wikiTitle: "Jaws (film)" },
+  { title: "Taken", year: "2008", genre: "Action, Crime, Thriller", director: "Pierre Morel", actors: "Liam Neeson, Maggie Grace, Famke Janssen", plot: "A retired CIA agent travels across Europe and relies on his old skills to save his estranged daughter, who has been kidnapped while in Paris.", rtCritic: 57, rtAudience: 84, imdbScore: "7.8", wikiTitle: "Taken (film)" },
+  { title: "Crank", year: "2006", genre: "Action, Crime, Thriller", director: "Mark Neveldine, Brian Taylor", actors: "Jason Statham, Amy Smart, Jose Pablo Cantillo", plot: "Hitman Chev Chelios learns his rivals have injected him with a poison that will kill him if his heart rate drops, leading him to frantically race through the streets of L.A.", rtCritic: 64, rtAudience: 54, imdbScore: "6.9", wikiTitle: "Crank (film)" },
+  { title: "Dante's Peak", year: "1997", genre: "Action, Adventure, Thriller", director: "Roger Donaldson", actors: "Pierce Brosnan, Linda Hamilton, Charles Hallahan", plot: "A volcanologist arrives at a small mountain town recently named the second most desirable place to live in America, and discovers the long-dormant volcano nearby may be active.", rtCritic: 33, rtAudience: 38, imdbScore: "5.8", wikiTitle: "Dante's Peak" },
+  { title: "Braveheart", year: "1995", genre: "Biography, Drama, History", director: "Mel Gibson", actors: "Mel Gibson, Sophie Marceau, Patrick McGoohan", plot: "Scottish warrior William Wallace leads his countrymen in a rebellion to free his homeland from the tyranny of King Edward I of England.", rtCritic: 78, rtAudience: 94, imdbScore: "8.3", wikiTitle: "Braveheart" },
+  { title: "Zero Dark Thirty", year: "2012", genre: "Drama, History, Thriller", director: "Kathryn Bigelow", actors: "Jessica Chastain, Joel Edgerton, Chris Pratt", plot: "A chronicle of the decade-long hunt for al-Qaeda terrorist leader Osama bin Laden after the September 2001 attacks.", rtCritic: 91, rtAudience: 83, imdbScore: "7.4", wikiTitle: "Zero Dark Thirty" },
+  { title: "Man on Fire", year: "2004", genre: "Action, Crime, Drama", director: "Tony Scott", actors: "Denzel Washington, Dakota Fanning, Marc Anthony", plot: "In Mexico City, a former CIA operative swears vengeance on those who committed an unspeakable act against the family he was hired to protect.", rtCritic: 39, rtAudience: 83, imdbScore: "7.7", wikiTitle: "Man on Fire (2004 film)" },
+  // 3-star picks
+  { title: "Blade Runner 2049", year: "2017", genre: "Drama, Mystery, Sci-Fi", director: "Denis Villeneuve", actors: "Harrison Ford, Ryan Gosling, Ana de Armas", plot: "A young blade runner's discovery of a long-buried secret leads him to track down former blade runner Rick Deckard, who's been missing for thirty years.", rtCritic: 88, rtAudience: 81, imdbScore: "8.0", wikiTitle: "Blade Runner 2049" },
+  { title: "The Irishman", year: "2019", genre: "Biography, Crime, Drama", director: "Martin Scorsese", actors: "Robert De Niro, Al Pacino, Joe Pesci", plot: "A mob hitman recalls his possible involvement with the slaying of Jimmy Hoffa.", rtCritic: 95, rtAudience: 76, imdbScore: "7.8", wikiTitle: "The Irishman" },
+  { title: "Tenet", year: "2020", genre: "Action, Sci-Fi", director: "Christopher Nolan", actors: "John David Washington, Robert Pattinson, Elizabeth Debicki", plot: "Armed with only one word, Tenet, and fighting for the survival of the entire world, a Protagonist journeys through a twilight world of international espionage on a mission that will unfold in something beyond real time.", rtCritic: 69, rtAudience: 76, imdbScore: "7.3", wikiTitle: "Tenet (film)" },
+  { title: "Reservoir Dogs", year: "1992", genre: "Crime, Drama", director: "Quentin Tarantino", actors: "Harvey Keitel, Tim Roth, Michael Madsen", plot: "When a simple jewelry heist goes horribly wrong, the surviving criminals begin to suspect that one of them is a police informant.", rtCritic: 88, rtAudience: 92, imdbScore: "8.3", wikiTitle: "Reservoir Dogs" },
+  { title: "Joker", year: "2019", genre: "Crime, Drama, Thriller", director: "Todd Phillips", actors: "Joaquin Phoenix, Robert De Niro, Zazie Beetz", plot: "A mentally troubled stand-up comedian embarks on a downward spiral of revolution and bloody crime in Gotham City.", rtCritic: 68, rtAudience: 88, imdbScore: "8.4", wikiTitle: "Joker (2019 film)" },
+  { title: "Once Upon a Time in Hollywood", year: "2019", genre: "Comedy, Drama", director: "Quentin Tarantino", actors: "Leonardo DiCaprio, Brad Pitt, Margot Robbie", plot: "A faded television actor and his stunt double strive to achieve fame and success in the film industry during the final years of Hollywood's Golden Age.", rtCritic: 85, rtAudience: 70, imdbScore: "7.6", wikiTitle: "Once Upon a Time in Hollywood" },
+  // 0-star picks
+  { title: "Star Wars: A New Hope", year: "1977", genre: "Action, Adventure, Fantasy", director: "George Lucas", actors: "Mark Hamill, Harrison Ford, Carrie Fisher", plot: "Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a Wookiee and two droids to save the galaxy from the Empire's world-destroying battle station.", rtCritic: 93, rtAudience: 96, imdbScore: "8.6", wikiTitle: "Star Wars (film)" },
+  { title: "The Empire Strikes Back", year: "1980", genre: "Action, Adventure, Fantasy", director: "Irvin Kershner", actors: "Mark Hamill, Harrison Ford, Carrie Fisher", plot: "After the Rebels are brutally overpowered by the Empire on the ice planet Hoth, Luke Skywalker begins Jedi training with Yoda.", rtCritic: 94, rtAudience: 97, imdbScore: "8.7", wikiTitle: "The Empire Strikes Back" },
+  { title: "Avatar", year: "2009", genre: "Action, Adventure, Fantasy", director: "James Cameron", actors: "Sam Worthington, Zoe Saldana, Sigourney Weaver", plot: "A paraplegic Marine dispatched to the moon Pandora on a unique mission becomes torn between following his orders and protecting the world he feels is his home.", rtCritic: 82, rtAudience: 82, imdbScore: "7.9", wikiTitle: "Avatar (2009 film)" },
+  { title: "The Royal Tenenbaums", year: "2001", genre: "Comedy, Drama", director: "Wes Anderson", actors: "Gene Hackman, Gwyneth Paltrow, Owen Wilson", plot: "The eccentric members of a dysfunctional family reluctantly gather under the same roof for various reasons.", rtCritic: 80, rtAudience: 87, imdbScore: "7.6", wikiTitle: "The Royal Tenenbaums" },
+  { title: "Ocean's Eleven", year: "2001", genre: "Crime, Thriller", director: "Steven Soderbergh", actors: "George Clooney, Brad Pitt, Matt Damon", plot: "Danny Ocean and his ten accomplices plan to rob three Las Vegas casinos simultaneously.", rtCritic: 82, rtAudience: 87, imdbScore: "7.8", wikiTitle: "Ocean's Eleven" },
+  // 1-star picks
+  { title: "Requiem for a Dream", year: "2000", genre: "Drama", director: "Darren Aronofsky", actors: "Ellen Burstyn, Jared Leto, Jennifer Connelly", plot: "The drug-induced utopias of four Coney Island people are shattered when their addictions run deep.", rtCritic: 78, rtAudience: 90, imdbScore: "8.3", wikiTitle: "Requiem for a Dream" },
+  { title: "Babel", year: "2006", genre: "Drama", director: "Alejandro González Iñárritu", actors: "Brad Pitt, Cate Blanchett, Gael García Bernal", plot: "Tragedy strikes a married couple on vacation in the Moroccan desert, touching off an interlocking story involving four different families.", rtCritic: 69, rtAudience: 71, imdbScore: "7.5", wikiTitle: "Babel (film)" },
+  { title: "Watchmen", year: "2009", genre: "Action, Drama, Mystery", director: "Zack Snyder", actors: "Billy Crudup, Jackie Earle Haley, Malin Åkerman", plot: "In 1985 where former superheroes exist, the murder of a colleague sends active watchman Rorschach into his own sprawling investigation.", rtCritic: 64, rtAudience: 72, imdbScore: "7.6", wikiTitle: "Watchmen (film)" },
+  // 2-star picks
+  { title: "Annihilation", year: "2018", genre: "Adventure, Drama, Horror", director: "Alex Garland", actors: "Natalie Portman, Jennifer Jason Leigh, Tessa Thompson", plot: "A biologist signs up for a dangerous, secret expedition into a mysterious zone where the laws of nature don't apply.", rtCritic: 88, rtAudience: 67, imdbScore: "6.8", wikiTitle: "Annihilation (film)" },
+  { title: "Moonlight", year: "2016", genre: "Drama", director: "Barry Jenkins", actors: "Mahershala Ali, Naomie Harris, Trevante Rhodes", plot: "A young African-American man grapples with his identity and sexuality while experiencing the rough neighborhood and drug-affected environment he grew up in.", rtCritic: 98, rtAudience: 79, imdbScore: "7.4", wikiTitle: "Moonlight (film)" },
+  // 4-star picks (notable)
+  { title: "The Godfather", year: "1972", genre: "Crime, Drama", director: "Francis Ford Coppola", actors: "Marlon Brando, Al Pacino, James Caan", plot: "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.", rtCritic: 97, rtAudience: 98, imdbScore: "9.2", wikiTitle: "The Godfather" },
+  { title: "Apocalypse Now", year: "1979", genre: "Drama, Mystery, War", director: "Francis Ford Coppola", actors: "Martin Sheen, Marlon Brando, Robert Duvall", plot: "During the U.S.-Viet Nam War, Captain Willard is sent on a dangerous mission into Cambodia to assassinate a renegade colonel who has set himself up as a god.", rtCritic: 97, rtAudience: 92, imdbScore: "8.4", wikiTitle: "Apocalypse Now" },
+  { title: "Terminator 2: Judgment Day", year: "1991", genre: "Action, Sci-Fi", director: "James Cameron", actors: "Arnold Schwarzenegger, Linda Hamilton, Edward Furlong", plot: "A cyborg, identical to the one who failed to kill Sarah Connor, must now protect her ten-year-old son John from an even more advanced and powerful cyborg.", rtCritic: 93, rtAudience: 95, imdbScore: "8.6", wikiTitle: "Terminator 2: Judgment Day" },
+  { title: "The Matrix", year: "1999", genre: "Action, Sci-Fi", director: "Lana Wachowski, Lilly Wachowski", actors: "Keanu Reeves, Laurence Fishburne, Carrie-Anne Moss", plot: "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers.", rtCritic: 88, rtAudience: 85, imdbScore: "8.7", wikiTitle: "The Matrix" },
+  { title: "Snatch", year: "2000", genre: "Comedy, Crime", director: "Guy Ritchie", actors: "Jason Statham, Brad Pitt, Benicio Del Toro", plot: "Unscrupulous boxing promoters, violent bookmakers, a Russian gangster, incompetent amateur robbers and supposedly Jewish jewelers fight to track down a priceless stolen diamond.", rtCritic: 73, rtAudience: 93, imdbScore: "8.3", wikiTitle: "Snatch (film)" },
+  { title: "Hot Fuzz", year: "2007", genre: "Action, Comedy, Crime", director: "Edgar Wright", actors: "Simon Pegg, Nick Frost, Martin Freeman", plot: "A skilled London police officer is transferred to a small, quiet village where he discovers that the seemingly perfect community is hiding a dark secret.", rtCritic: 91, rtAudience: 92, imdbScore: "7.9", wikiTitle: "Hot Fuzz" },
+  { title: "Ocean's Twelve", year: "2004", genre: "Crime, Thriller", director: "Steven Soderbergh", actors: "George Clooney, Brad Pitt, Matt Damon", plot: "Daniel Ocean recruits one more team member so he can pull off three huge European heists in this sequel to Ocean's Eleven.", rtCritic: 54, rtAudience: 62, imdbScore: "6.5", wikiTitle: "Ocean's Twelve" },
+];
+
+// ============================================================
+// FEATURED FILMS FOR COVER PAGE
+// ============================================================
+const FEATURED = [
+  { title: "The Dark Knight",       year: "2008", adamRating: 5, tag: "banger",  tagLabel: "Adam's Gold Standard", wikiTitle: "The Dark Knight (film)" },
+  { title: "Crank",                 year: "2006", adamRating: 5, tag: "chaos",   tagLabel: "Certified Chaos",      wikiTitle: "Crank (film)" },
+  { title: "Dante's Peak",          year: "1997", adamRating: 5, tag: "chaos",   tagLabel: "Adam's Citizen Kane",  wikiTitle: "Dante's Peak" },
+  { title: "Parasite",              year: "2019", adamRating: 5, tag: "banger",  tagLabel: "The Exception",        wikiTitle: "Parasite (2019 film)" },
+  { title: "Star Wars: A New Hope", year: "1977", adamRating: 0, tag: "reject",  tagLabel: "The Great Rejection",  wikiTitle: "Star Wars (film)" },
+  { title: "Ocean's Eleven",        year: "2001", adamRating: 0, tag: "reject",  tagLabel: "Makes No Sense",       wikiTitle: "Ocean's Eleven" },
+  { title: "Requiem for a Dream",   year: "2000", adamRating: 1, tag: "reject",  tagLabel: "Prestige Rejected",    wikiTitle: "Requiem for a Dream" },
+  { title: "The Irishman",          year: "2019", adamRating: 3, tag: "chaos",   tagLabel: "Scorsese Underrated",  wikiTitle: "The Irishman" },
+];
+
+// ============================================================
+// ROAST DATA
+// ============================================================
+const ROAST_DATA = [
+  { title: "John Wick", year: "2014", adamRating: 5, rtCritic: 86, rtAudience: 90,
+    joke: "A retired assassin kills 77 people because someone killed his dog. Five stars from Adam. His only known movie quote is 'Jesus Christ, it's Jason Bourne.' John Wick did not require a different quote. It confirmed the whole thing." },
+  { title: "Star Wars: A New Hope", year: "1977", adamRating: 0, rtCritic: 93, rtAudience: 96,
+    joke: "Universally beloved. Culturally inescapable. Zero stars from Adam. He rented it. He watched it. He gave it zero stars. He then rented the sequels. This is a man who knows what he doesn't like and keeps looking for it anyway." },
+  { title: "The Empire Strikes Back", year: "1980", adamRating: 0, rtCritic: 94, rtAudience: 97,
+    joke: "Widely considered the greatest sequel ever made. Adam gave it zero stars. He gave Snakes on a Plane three stars. There is no critical framework in existence that produces both of those outcomes simultaneously — except his." },
+  { title: "Requiem for a Dream", year: "2000", adamRating: 1, rtCritic: 78, rtAudience: 90,
+    joke: "Award-winning. 90% audience approval. One star from Adam. Nobody is running. Nobody is being Taken. Jennifer Connelly is suffering extensively and quietly for two hours. He was not there for that." },
+  { title: "Ocean's Eleven", year: "2001", adamRating: 0, rtCritic: 82, rtAudience: 87,
+    joke: "Zero stars. He then gave Ocean's Twelve five stars. Ocean's Twelve is the one critics hate. He watched the acclaimed one first, disliked it, then found the bad one and loved it. He is immune to consensus in both directions." },
+  { title: "Ocean's Twelve", year: "2004", adamRating: 5, rtCritic: 54, rtAudience: 62,
+    joke: "Critics: 54%. Adam: five stars. Ocean's Eleven received zero stars from him. He was once crowned Sexiest Man on a cruise ship. These facts are unrelated. Both are correct." },
+  { title: "Crank", year: "2006", adamRating: 5, rtCritic: 64, rtAudience: 54,
+    joke: "Jason Statham injects himself with adrenaline and runs through Los Angeles for 88 minutes. 54% on Rotten Tomatoes. Five stars from Adam. He once owned a black Pontiac G6 and has listened to 'Like a G6' on purpose. His taste is a unified theory and it holds." },
+  { title: "Dante's Peak", year: "1997", adamRating: 5, rtCritic: 33, rtAudience: 38,
+    joke: "33% on Rotten Tomatoes. Pierce Brosnan in flannel, running from a volcano for 108 minutes. Five stars from Adam. This is the widest gap between him and critics in the entire dataset. He was simply right and everyone else was wrong." },
+  { title: "LOTR: Fellowship of the Ring", year: "2001", adamRating: 0, rtCritic: 91, rtAudience: 95,
+    joke: "Won 4 Oscars. 95% audience approval. Zero stars from Adam. The film is 178 minutes long and ends without resolving anything. In fairness, this is a completely legitimate complaint. He is still wrong." },
+  { title: "Avatar", year: "2009", adamRating: 0, rtCritic: 82, rtAudience: 82,
+    joke: "The highest-grossing film of all time. Zero stars from Adam. He has given five stars to Crank, Dante's Peak, and Under Siege 2: Dark Territory. The bar was not impossibly high. Avatar cleared nothing." },
+  { title: "Babel", year: "2006", adamRating: 1, rtCritic: 69, rtAudience: 71,
+    joke: "Six subplots. Four countries. Brad Pitt, Cate Blanchett, and a Japanese teenager. One star from Adam. He gave Con Air four stars. The math is simple: fewer subplots, more Nicolas Cage." },
+  { title: "Annihilation", year: "2018", adamRating: 2, rtCritic: 88, rtAudience: 67,
+    joke: "88% from critics. Two stars from Adam. He and the audience were equally unimpressed — which is unusual. Adam normally disagrees with at least one group on any given film. Annihilation is the rare case where everyone landed in the same place." },
+  { title: "Parasite", year: "2019", adamRating: 5, rtCritic: 99, rtAudience: 90,
+    joke: "The only foreign-language film in 1,566 rentals to receive five stars. Every other subtitled film in his collection sits at two stars or below. He watched Parasite, gave it five, and then went straight back to Jason Statham. He did not make a habit of it." },
+  { title: "The Royal Tenenbaums", year: "2001", adamRating: 0, rtCritic: 80, rtAudience: 87,
+    joke: "Wes Anderson's most celebrated film. Zero stars from Adam. His music library includes Pitbull, Kesha, Gangnam Style, and Like a G6. The film's soundtrack features Elliott Smith and Nico. These are incompatible operating systems." },
+  { title: "Walk the Line", year: "2005", adamRating: 0, rtCritic: 82, rtAudience: 89,
+    joke: "Joaquin Phoenix won a Golden Globe. Reese Witherspoon won an Oscar. Zero stars from Adam. His playlist includes Timber, Sandstorm, and Like a G6. Johnny Cash wrote Hurt. These are different people with different goals." },
+  { title: "Blade Runner 2049", year: "2017", adamRating: 3, rtCritic: 88, rtAudience: 81,
+    joke: "88% critics. 163 minutes of neon rain and questions about consciousness. Three stars from Adam. He gave Crank five. The two films have very different ideas about the meaning of life. He has weighed them." },
+  { title: "The Irishman", year: "2019", adamRating: 3, rtCritic: 95, rtAudience: 76,
+    joke: "Scorsese. De Niro. Pacino. Pesci. Three and a half hours. Ten Oscar nominations. Three stars from Adam. He gave Taken five. Both films are about men who will do extreme things for what they care about. He preferred the one where Liam Neeson does the running." },
+  { title: "Tenet", year: "2020", adamRating: 3, rtCritic: 69, rtAudience: 76,
+    joke: "Nolan's time-inversion thriller. Three stars from Adam. He has been doing a Borat impression for years and considers it to consistently improve with age. Borat's relationship with linear social norms: five stars. Tenet's relationship with linear time: three stars." },
+  { title: "Moonlight", year: "2016", adamRating: 2, rtCritic: 98, rtAudience: 79,
+    joke: "98% on Rotten Tomatoes. Best Picture winner. Two stars from Adam. It is a quiet, devastating film about identity and memory. There are long silences. Nothing explodes. He has seen 1,566 movies. He knew what he came for." },
+  { title: "Watchmen", year: "2009", adamRating: 1, rtCritic: 64, rtAudience: 72,
+    joke: "Three hours. One of the most acclaimed graphic novels ever adapted. One star from Adam. His pattern is consistent: runtime over 150 minutes, no foot chases, no one with a specific set of skills. Watchmen had none of these things." },
+  { title: "Joker", year: "2019", adamRating: 3, rtCritic: 68, rtAudience: 88,
+    joke: "Joaquin Phoenix. Career-defining performance. 88% audience approval. Three stars from Adam. He gave Batman Begins five stars. The Joker receives fewer stars than the man he spends the entire film trying to destroy. Adam is a Packers fan. He knows who the hero is supposed to be." },
+];
+
+// ============================================================
+// HELPERS
+// ============================================================
+function normalizeTitle(t) {
+  return t.toLowerCase()
+    .replace(/^(the|a|an)\s+/, '')
+    .replace(/[^a-z0-9\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function lookupAdam(title) {
+  const key = normalizeTitle(title);
+  if (key in ADAM_RATINGS) return ADAM_RATINGS[key];
+  for (const k of Object.keys(ADAM_RATINGS)) {
+    if (k.includes(key) || key.includes(k)) return ADAM_RATINGS[k];
+  }
+  return null;
+}
+
+function lookupMovieData(title) {
+  const key = normalizeTitle(title);
+  for (const m of MOVIE_DATA) {
+    const mk = normalizeTitle(m.title);
+    if (mk === key || mk.includes(key) || key.includes(mk)) return m;
+  }
+  return null;
+}
+
+function getVerdictClass(n) {
+  if (n === null) return 'verdict-none';
+  if (n >= 4) return 'verdict-love';
+  if (n <= 1) return 'verdict-hate';
+  return 'verdict-meh';
+}
+
+function getAdamCommentary(n, title, rtCritic, rtAudience) {
+  if (n === null) return `"${title}" is not in Adam's rated collection.`;
+  const rt = rtCritic !== null ? `${rtCritic}% on Rotten Tomatoes. ` : '';
+  const aud = rtAudience !== null ? `${rtAudience}% audience approval. ` : '';
+  const gap = rtCritic !== null ? rtCritic - (n * 20) : 0;
+  const pools = {
+    0: rtCritic !== null ? [
+      `${rt}Zero stars from Adam. He rented it. He watched it. He wanted his time back.`,
+      `${aud}Zero stars from Adam. He has seen over 1,500 films. He knew this wasn't it.`,
+      `${rt}Zero stars from Adam. The critics were not a factor in this decision.`,
+      `Zero stars. ${rt}Whatever this film was trying to do, Adam was not its audience.`,
+    ] : [
+      `Zero stars from Adam. He has seen enough movies to know.`,
+      `Zero stars. He was not its audience.`,
+    ],
+    1: rtCritic !== null ? [
+      `${rt}One star from Adam. He made it through. He was not glad he did.`,
+      `${aud}One star from Adam. He has given five stars to far less celebrated films. This was not one of them.`,
+      `One star. ${rt}He sat through the whole thing. It wasn't enough.`,
+    ] : [
+      `One star from Adam. He made it through. He was not glad he did.`,
+      `One star. He has seen worse. This was close.`,
+    ],
+    2: rtCritic !== null ? [
+      `${rt}Two stars from Adam. It exists. He acknowledges it.`,
+      `${aud}Two stars from Adam. He gave it a fair shot. The film gave him fine.`,
+      `Two stars. ${rt}Not broken. Not memorable. Adam has moved on.`,
+    ] : [
+      `Two stars. It was fine. Adam has moved on.`,
+      `Two stars from Adam. He was not offended. He was not inspired.`,
+    ],
+    3: rtCritic !== null ? [
+      `${rt}Three stars from Adam. He found it acceptable. That is his full review.`,
+      `${aud}Three stars. He watched it. He filed it under fine.`,
+      `Three stars. ${rt}Not bad. Not great. Not something he'll bring up again.`,
+    ] : [
+      `Three stars from Adam. Acceptable. Not a ringing endorsement.`,
+      `Three stars. The Adam shrug. He has nothing further to add.`,
+    ],
+    4: rtCritic !== null ? [
+      `${rt}Four stars from Adam. He was entertained. He has no further complaints.`,
+      `${aud}Four stars. Strong approval from Adam. He recommends it, in his way.`,
+      `Four stars. ${rt}Adam liked this one. That is not nothing.`,
+    ] : [
+      `Four stars from Adam. Solid. He recommends it.`,
+      `Four stars. He was entertained. He has no complaints.`,
+    ],
+    5: rtCritic !== null ? [
+      gap > 40
+        ? `${rt}Five stars from Adam. The critics were measuring the wrong thing.`
+        : gap < -20
+        ? `Five stars from Adam. ${rt}Rare alignment between Adam and the critics.`
+        : `${rt}Five stars from Adam. His highest honor. This film earned it.`,
+      `Five stars. ${rt}Adam's seal of approval. It is not given lightly.`,
+      `${aud}Five stars from Adam. A certified Adam classic. There is no higher praise.`,
+    ] : [
+      `Five stars. Adam's highest honor.`,
+      `Five stars. A certified Adam classic. He would watch it again.`,
+    ],
+  };
+  const opts = pools[n] || [`${n} stars from Adam.`];
+  return opts[Math.floor(Math.random() * opts.length)];
+}
+
+function scoreColor(n) {
+  if (n === null) return '#555';
+  if (n === 0) return '#e50914';
+  if (n === 1) return '#ff6b6b';
+  if (n === 2) return '#f5a623';
+  if (n === 3) return '#a5b4fc';
+  if (n >= 4) return '#f5c518';
+  return '#fff';
+}
+
+// ============================================================
+// WIKIPEDIA POSTER FETCH (free, no key)
+// ============================================================
+// Single call with exact Wikipedia article title — reliable for all known films
+async function fetchWikiPoster(wikiTitle) {
+  if (!wikiTitle) return null;
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(wikiTitle)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const page = Object.values(data.query.pages)[0];
+    if (page && page.thumbnail && page.thumbnail.source) return page.thumbnail.source;
+  } catch(e) {}
+  return null;
+}
+
+// Fallback for arbitrary searches (not in MOVIE_DATA): search then fetch image
+async function fetchWikiPosterBySearch(title) {
+  try {
+    const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title + ' film')}&format=json&srlimit=1&origin=*`;
+    const res = await fetch(searchUrl);
+    const data = await res.json();
+    if (!data.query.search.length) return null;
+    const pageTitle = data.query.search[0].title;
+    return await fetchWikiPoster(pageTitle);
+  } catch(e) {}
+  return null;
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+async function searchMovie() {
+  const query = document.getElementById('searchInput').value.trim();
+  if (!query) return;
+
+  const resultEl = document.getElementById('searchResult');
+  document.getElementById('searchBtn').disabled = true;
+  resultEl.innerHTML = '<div class="loading">Looking up...</div>';
+
+  const movieData = lookupMovieData(query);
+  const adamScore = movieData ? movieData.adamRating ?? lookupAdam(query) : lookupAdam(query);
+
+  const verdictClass = getVerdictClass(adamScore);
+  const verdictText = movieData
+    ? getAdamCommentary(adamScore, movieData.title, movieData.rtCritic ?? null, movieData.rtAudience ?? null)
+    : getAdamCommentary(adamScore, query, null, null);
+
+  if (movieData) {
+    // Render card immediately with data, load poster async
+    const posterPlaceholder = `<div class="poster-loading"><div class="spinner"></div></div>`;
+    resultEl.innerHTML = `
+      <div class="movie-card">
+        <div class="movie-poster" id="posterBox">${posterPlaceholder}</div>
+        <div class="movie-info">
+          <div class="movie-title">${movieData.title}</div>
+          <div class="movie-meta">${movieData.year} · ${movieData.genre} · Dir. ${movieData.director}</div>
+          <div class="movie-plot">${movieData.plot}</div>
+          <div class="scores-grid">
+            <div class="score-box">
+              <div class="score-label">Adam's Rating</div>
+              <div class="score-value" style="color:${scoreColor(adamScore)}">${adamScore !== null ? adamScore + '★' : '<span class="score-na">—</span>'}</div>
+              <div class="score-sub">${adamScore !== null ? 'out of 5' : 'not rated'}</div>
+            </div>
+            <div class="score-box">
+              <div class="score-label">RT Critics</div>
+              <div class="score-value score-rt-critic">${movieData.rtCritic !== null ? movieData.rtCritic + '%' : '<span class="score-na">N/A</span>'}</div>
+              <div class="score-sub">Tomatometer</div>
+            </div>
+            <div class="score-box">
+              <div class="score-label">RT Audience</div>
+              <div class="score-value score-rt-audience">${movieData.rtAudience !== null ? movieData.rtAudience + '%' : '<span class="score-na">N/A</span>'}</div>
+              <div class="score-sub">Audience score</div>
+            </div>
+            <div class="score-box">
+              <div class="score-label">IMDB</div>
+              <div class="score-value score-imdb">${movieData.imdbScore}</div>
+              <div class="score-sub">/ 10</div>
+            </div>
+          </div>
+          <div class="adam-verdict ${verdictClass}">${verdictText}</div>
+        </div>
+      </div>
+    `;
+
+    // Load poster async
+    const posterUrl = await fetchWikiPoster(movieData.wikiTitle);
+    const posterBox = document.getElementById('posterBox');
+    if (posterBox) {
+      if (posterUrl) {
+        posterBox.innerHTML = `<img src="${posterUrl}" alt="${movieData.title} poster" onerror="this.parentElement.innerHTML='<div class=\\'no-poster\\'><span>🎬</span>No poster</div>'">`;
+      } else {
+        posterBox.innerHTML = `<div class="no-poster"><span>🎬</span>No poster found</div>`;
+      }
+    }
+  } else {
+    // Movie not in database — show Adam's score + fetch poster
+    const displayTitle = query.replace(/\b\w/g, l => l.toUpperCase());
+    const posterPlaceholder = `<div class="poster-loading"><div class="spinner"></div></div>`;
+    resultEl.innerHTML = `
+      <div class="movie-card">
+        <div class="movie-poster" id="posterBox">${posterPlaceholder}</div>
+        <div class="movie-info">
+          <div class="movie-title">${displayTitle}</div>
+          <div class="movie-meta">Searched title — full metadata not in database</div>
+          <div class="scores-grid">
+            <div class="score-box">
+              <div class="score-label">Adam's Rating</div>
+              <div class="score-value" style="color:${scoreColor(adamScore)}">${adamScore !== null ? adamScore + '★' : '<span class="score-na">—</span>'}</div>
+              <div class="score-sub">${adamScore !== null ? 'out of 5' : 'not in collection'}</div>
+            </div>
+          </div>
+          ${adamScore !== null
+            ? `<div class="adam-verdict ${verdictClass}">${verdictText}</div>`
+            : `<div class="info-box">"${displayTitle}" is not in Adam's rated collection. He may not have rented it, or it may not appear in the dataset.</div>`
+          }
+        </div>
+      </div>
+    `;
+    // Try to get a poster anyway
+    const posterUrl = await fetchWikiPosterBySearch(query);
+    const posterBox = document.getElementById('posterBox');
+    if (posterBox) {
+      posterBox.innerHTML = posterUrl
+        ? `<img src="${posterUrl}" alt="poster">`
+        : `<div class="no-poster"><span>🎬</span>No poster found</div>`;
+    }
+  }
+
+  document.getElementById('searchBtn').disabled = false;
+}
+
+function searchFilm(title) {
+  switchTab('search');
+  document.getElementById('searchInput').value = title;
+  searchMovie();
+}
+
+// ============================================================
+// FEATURED GRID
+// ============================================================
+function buildFeaturedGrid() {
+  const grid = document.getElementById('featuredGrid');
+  grid.innerHTML = FEATURED.map(f => {
+    const color = scoreColor(f.adamRating);
+    const labelClass = f.tag === 'banger' ? 'label-banger' : f.tag === 'reject' ? 'label-reject' : 'label-chaos';
+    return `
+      <div class="featured-card" onclick="searchFilm('${f.title.replace(/'/g,"\\'")}')">
+        <div class="featured-poster" id="fp-${normalizeTitle(f.title).replace(/\s/g,'-')}">
+          <div class="fp-placeholder">${f.title}</div>
+          <div class="featured-score-badge" style="color:${color}">${f.adamRating}★</div>
+        </div>
+        <div class="featured-info">
+          <h4>${f.title}</h4>
+          <p>${f.year}</p>
+          <span class="featured-label ${labelClass}">${f.tagLabel}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Load posters async for featured films
+  FEATURED.forEach(async (f) => {
+    const id = 'fp-' + normalizeTitle(f.title).replace(/\s/g, '-');
+    const posterUrl = await fetchWikiPoster(f.wikiTitle);
+    const el = document.getElementById(id);
+    if (el && posterUrl) {
+      const badge = el.querySelector('.featured-score-badge');
+      const badgeHtml = badge ? badge.outerHTML : '';
+      el.innerHTML = `<img src="${posterUrl}" alt="${f.title}" style="width:100%;height:100%;object-fit:cover;display:block;">${badgeHtml}`;
+    }
+  });
+}
+
+// ============================================================
+// ROAST GRID
+// ============================================================
+function buildRoastGrid() {
+  const grid = document.getElementById('roastGrid');
+  grid.innerHTML = ROAST_DATA.map(film => {
+    const adamPct = (film.adamRating / 5) * 100;
+    const divergence = Math.abs(film.rtCritic - adamPct);
+    const fillColor = divergence > 60 ? '#e50914' : divergence > 30 ? '#f5c518' : '#4caf50';
+    return `
+      <div class="roast-card">
+        <div class="roast-header">
+          <div>
+            <div class="roast-title">${film.title}</div>
+            <div class="roast-year">${film.year}</div>
+          </div>
+          <div class="roast-scores">
+            <div class="mini-score"><div class="ms-label">Adam</div><div class="ms-val" style="color:${scoreColor(film.adamRating)}">${film.adamRating}★</div></div>
+            <div class="mini-score"><div class="ms-label">Critics</div><div class="ms-val score-rt-critic">${film.rtCritic}%</div></div>
+            <div class="mini-score"><div class="ms-label">Audience</div><div class="ms-val score-rt-audience">${film.rtAudience}%</div></div>
+          </div>
+        </div>
+        <div class="divergence-bar"><div class="divergence-fill" style="width:${Math.min(divergence,100)}%;background:${fillColor}"></div></div>
+        <div class="roast-joke">${film.joke}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// RANDOM HOT TAKE
+// ============================================================
+function randomAdamFilm() {
+  const rated = MOVIE_DATA.filter(m => lookupAdam(m.title) !== null);
+  if (!rated.length) return;
+  const pick = rated[Math.floor(Math.random() * rated.length)];
+  searchFilm(pick.title);
+}
+
+// ============================================================
+// ============================================================
+// HALL OF FAME
+// ============================================================
+function computeActorScores() {
+  const map = {};
+  for (const movie of MOVIE_DATA) {
+    const rating = lookupAdam(movie.title);
+    if (rating === null || !movie.actors) continue;
+    for (const actor of movie.actors.split(', ')) {
+      if (!map[actor]) map[actor] = { films: [], total: 0 };
+      map[actor].films.push({ title: movie.title, year: movie.year, rating });
+      map[actor].total += rating;
+    }
+  }
+  return Object.entries(map)
+    .filter(([, d]) => d.films.length >= 2)
+    .map(([name, d]) => ({
+      name,
+      avg: d.total / d.films.length,
+      films: d.films.sort((a, b) => b.rating - a.rating),
+      count: d.films.length
+    }))
+    .sort((a, b) => b.avg - a.avg || b.count - a.count);
+}
+
+function renderStars(avg, fameColor) {
+  const full = Math.floor(avg);
+  const half = (avg - full) >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  const on = fameColor || '#f5c518';
+  const off = '#333';
+  return `<span style="color:${on}">${'★'.repeat(full)}${half ? '½' : ''}</span><span style="color:${off}">${'★'.repeat(empty)}</span>`;
+}
+
+function filmStars(n) {
+  return `<span style="color:#e50914">${'★'.repeat(n)}</span><span style="color:#2a2a2a">${'★'.repeat(5 - n)}</span>`;
+}
+
+function hofCard(actor, isShame) {
+  const color = isShame ? '#555' : '#f5c518';
+  const safeId = actor.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+  const initials = actor.name.split(' ').map(w => w[0]).slice(0, 2).join('');
+  const filmRows = actor.films.map(f =>
+    `<div class="hof-film">
+      <span class="hof-film-title">${f.title}<span class="hof-film-year"> ${f.year}</span></span>
+      <span class="hof-film-stars">${filmStars(f.rating)}</span>
+    </div>`
+  ).join('');
+  return `
+    <div class="hof-card">
+      <div class="hof-avatar-wrap ${isShame ? 'shame' : 'fame'}">
+        <div class="hof-avatar-init" id="ai-init-${safeId}">${initials}</div>
+        <img class="hof-avatar" id="ai-img-${safeId}" alt="${actor.name}">
+      </div>
+      <div class="hof-actor-name">${actor.name}</div>
+      <div class="hof-avg-row">
+        <span class="hof-stars">${renderStars(actor.avg, color)}</span>
+        <span class="hof-avg-num">${actor.avg.toFixed(2)} avg</span>
+      </div>
+      <div class="hof-film-count">${actor.count} film${actor.count > 1 ? 's' : ''} in dataset</div>
+      <div class="hof-films">${filmRows}</div>
+    </div>`;
+}
+
+function buildHallOfFame() {
+  const scores = computeActorScores();
+  const top = scores.slice(0, 9);
+  const bottom = [...scores].reverse().slice(0, 6);
+  document.getElementById('hof-fame-grid').innerHTML = top.map(a => hofCard(a, false)).join('');
+  document.getElementById('hof-shame-grid').innerHTML = bottom.map(a => hofCard(a, true)).join('');
+  [...top, ...bottom].forEach(a => {
+    const safeId = a.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    fetchActorPhoto(a.name, safeId);
+  });
+}
+
+async function fetchActorPhoto(name, safeId) {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(name)}&prop=pageimages&format=json&pithumbsize=200&origin=*`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const page = Object.values(data.query.pages)[0];
+    if (page && page.thumbnail) {
+      const img = document.getElementById(`ai-img-${safeId}`);
+      const init = document.getElementById(`ai-init-${safeId}`);
+      if (img) {
+        img.onload = () => { img.style.display = 'block'; if (init) init.style.display = 'none'; };
+        img.onerror = () => {};
+        img.src = page.thumbnail.source;
+      }
+    }
+  } catch(e) {}
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildFeaturedGrid();
+buildRoastGrid();
+buildHallOfFame();
+</script>
+</body>
+</html>
